@@ -1,26 +1,72 @@
 # RASA-Net
 
-**Paper:** RASA-Net: Adaptive Receptive Fields and Scale-Balanced Label Assignment for Remote Sensing Small Object Detection
+**Paper:** RASA-Net for Small Object Detection With Adaptive Receptive Fields and Scale- and Quality-Aware Positive Allocation
 
-**Author:** lxh &lt;2356338071@qq.com&gt;
+**Authors:** Xiaoyu He, Xuehan Li, Zihao Chang, and Xiulin Geng
 
-## 数据集下载
+RASA-Net (Receptive-Field Adaptation and Scale-Aware Assignment Network) is a two-stage detector for small objects in aerial and satellite imagery. It addresses two challenges common in optical remote sensing. Small objects lose spatial detail during downsampling, and their limited overlap with anchors can leave them with few positive training samples.
 
-以下数据集通过夸克网盘分享，点击链接并输入对应提取码即可获取。
+- **Dynamic Receptive Field Convolution (DRFC)** routes each spatial region to convolutional experts with different receptive fields and combines their responses with directional context. It operates at the backbone stem, during downsampling, and at the highest-resolution pyramid level.
+- **Scale- and Quality-Aware Positive Allocation (SQPA)** adjusts the number of positive candidates per object using object size, anchor overlap, and predicted foreground confidence under an image-level budget that changes during training.
 
-| 数据集 | 下载链接 | 提取码 |
-| --- | --- | --- |
-| SODA-A | [SODA-A.zip](https://pan.quark.cn/s/a22db407908d?pwd=qAP1) | `qAP1` |
-| HRRSD | [HRRSD.zip](https://pan.quark.cn/s/5565eee34e88?pwd=Y6C9) | `Y6C9` |
-| DIOR | [DIOR.zip](https://pan.quark.cn/s/dd446ecb35b2?pwd=L7Zm) | `L7Zm` |
-| VisDrone | [VisDrone.zip](https://pan.quark.cn/s/1e770ae2572e?pwd=UvYu) | `UvYu` |
+Foreground–background decoupled attention suppresses clutter, and training-only Laplacian boundary supervision reinforces structural cues.
 
-## 运行命令
+![Overview of the RASA-Net detector and its dynamic receptive field convolution, including regional expert routing and directional context](docs/assets/rasa-net-architecture.png)
 
-以 DIOR 数据集训练 RASA-Net 为例：安装项目依赖并准备好 COCO 格式的数据后，在项目根目录的 Bash 终端中运行以下命令：
+## Benchmark results
+
+The manuscript reports COCO-style average precision (AP) for horizontal bounding boxes. Small-object AP uses boxes with areas of at most 32² pixels. SODA-A is evaluated on patches, and the other datasets are evaluated on original images.
+
+| Dataset | AP (%) | AP at IoU 0.50 (%) | Small-object AP (%) |
+| --- | ---: | ---: | ---: |
+| DIOR | 53.91 | 77.81 | 17.70 |
+| HRRSD | 61.71 | 89.07 | 21.29 |
+| SODA-A | 35.86 | 73.53 | 35.30 |
+| VisDrone | 24.39 | 43.63 | 15.78 |
+
+RASA-Net achieves the highest overall AP among the evaluated detectors on all four datasets. Small-object AP exceeds the strongest evaluated baseline by 1.49 points on DIOR, 1.28 points on SODA-A, and 1.42 points on VisDrone.
+
+## Installation
+
+Use a CUDA-enabled PyTorch and torchvision environment with a matching `mmcv-full` build in the range `1.3.3`–`1.4.0`. Follow the [MMCV 1.x installation guide](https://mmcv.readthedocs.io/en/v1.3.16/get_started/installation.html) for the compiled CUDA operators. From the repository root, install the bundled MMDetection package in editable mode.
+
+```bash
+python -m pip install -e .
+```
+
+## Dataset preparation
+
+Download the datasets from Quark Drive using the corresponding access codes. Prepare images and COCO-format annotations at the paths in the configuration files.
+
+| Dataset | Download | Access code | Dataset root | Configuration |
+| --- | --- | --- | --- | --- |
+| DIOR | [DIOR.zip](https://pan.quark.cn/s/dd446ecb35b2?pwd=L7Zm) | `L7Zm` | `data/DIOR_coco/` | [DIOR](configs/ostd/ostd_dior_1x.py) |
+| HRRSD | [HRRSD.zip](https://pan.quark.cn/s/5565eee34e88?pwd=Y6C9) | `Y6C9` | `data/HRRSD_coco/` | [HRRSD](configs/ostd/ostd_hrrsd_1x.py) |
+| SODA-A | [SODA-A.zip](https://pan.quark.cn/s/a22db407908d?pwd=qAP1) | `qAP1` | `data/SODA-A_coco/` | [SODA-A](configs/ostd/ostd_sodaa_1x.py) |
+| VisDrone | [VisDrone.zip](https://pan.quark.cn/s/1e770ae2572e?pwd=UvYu) | `UvYu` | `data/VisDrone_coco/` | [VisDrone](configs/ostd/ostd_visdrone_1x.py) |
+
+- **DIOR** uses `annotations/instances_trainval.json` with paths relative to `images/` for training, and `annotations/instances_test.json` with paths relative to `images/test/` for evaluation.
+- **HRRSD** uses the official training and test splits. **VisDrone** uses the official training split and the labeled `test-dev` split for evaluation.
+- **SODA-A** uses 800 × 800 patches with a stride of 650 pixels. The tiling protocol retains clipped boxes that cover at least 70% of the original box area. The configuration reads `images/train_patches/` and `images/test_patches/` with their corresponding COCO manifests.
+
+If you store the data elsewhere, update `ann_file` and `img_prefix` in the experiment configuration or its [base dataset configuration](configs/_base_/datasets).
+
+## Training and evaluation
+
+Run these commands from the repository root in Bash. The DIOR training example uses three CUDA GPUs and seed 0. Logs and checkpoints are written to `work_dirs/rasa_net_dior/`.
 
 ```bash
 bash tools/dist_train.sh configs/ostd/ostd_dior_1x.py 3 work_dirs/rasa_net_dior --seed 0
 ```
 
-数据默认位于 `data/DIOR_coco/`，训练标注为 `annotations/instances_trainval.json`，训练图片路径相对于 `images/`；验证使用 `annotations/instances_test.json` 和 `images/test/`。如数据存放位置不同，请修改配置中的 `ann_file` 和 `img_prefix`。训练日志和模型权重将保存到 `work_dirs/rasa_net_dior/`。
+After training, evaluate the epoch 12 checkpoint on the DIOR test split.
+
+```bash
+python tools/test.py configs/ostd/ostd_dior_1x.py work_dirs/rasa_net_dior/epoch_12.pth --eval bbox
+```
+
+The public configurations use `sbla` as the option name for positive allocation. When comparing with the manuscript, check the allocation settings. The SODA-A configuration sets `base_sample_num=256` (the manuscript reports 512), and the VisDrone configuration sets `gamma=0.5` (the manuscript reports 0.1). The table above reports the manuscript experiments.
+
+## Contact
+
+For questions about the paper, contact the corresponding author, Xiaoyu He (`hexiaoyv@zstu.edu.cn`).
