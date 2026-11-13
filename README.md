@@ -1,6 +1,6 @@
 # RASA-Net
 
-**Paper:** RASA-Net for Small Object Detection With Adaptive Receptive Fields and Scale- and Quality-Aware Positive Allocation
+**Title:** RASA-Net for Small Object Detection With Adaptive Receptive Fields and Scale- and Quality-Aware Positive Allocation
 
 **Authors:** Xiaoyu He, Xuehan Li, Zihao Chang, and Xiulin Geng
 
@@ -17,12 +17,12 @@ Foreground–background decoupled attention suppresses clutter, and training-onl
 
 The manuscript reports COCO-style average precision (AP) for horizontal bounding boxes. Small-object AP uses boxes with areas of at most 32² pixels. SODA-A is evaluated on patches, and the other datasets are evaluated on original images.
 
-| Dataset | AP (%) | AP at IoU 0.50 (%) | Small-object AP (%) |
-| --- | ---: | ---: | ---: |
-| DIOR | 53.91 | 77.81 | 17.70 |
-| HRRSD | 61.71 | 89.07 | 21.29 |
-| SODA-A | 35.86 | 73.53 | 35.30 |
-| VisDrone | 24.39 | 43.63 | 15.78 |
+| Dataset  | AP (%) | AP at IoU 0.50 (%) | Small-object AP (%) |
+| -------- | ------:| ------------------:| -------------------:|
+| DIOR     | 53.91  | 77.81              | 17.70               |
+| HRRSD    | 61.71  | 89.07              | 21.29               |
+| SODA-A   | 35.86  | 73.53              | 35.30               |
+| VisDrone | 24.39  | 43.63              | 15.78               |
 
 RASA-Net achieves the highest overall AP among the evaluated detectors on all four datasets. Small-object AP exceeds the strongest evaluated baseline by 1.49 points on DIOR, 1.28 points on SODA-A, and 1.42 points on VisDrone.
 
@@ -38,22 +38,16 @@ python -m pip install -e .
 
 Download the datasets from Quark Drive using the corresponding access codes. Prepare images and COCO-format annotations at the paths in the configuration files.
 
-| Dataset | Download | Access code | Dataset root | Configuration |
-| --- | --- | --- | --- | --- |
-| DIOR | [DIOR.zip](https://pan.quark.cn/s/dd446ecb35b2?pwd=L7Zm) | `L7Zm` | `data/DIOR_coco/` | [DIOR](configs/ostd/ostd_dior_1x.py) |
-| HRRSD | [HRRSD.zip](https://pan.quark.cn/s/5565eee34e88?pwd=Y6C9) | `Y6C9` | `data/HRRSD_coco/` | [HRRSD](configs/ostd/ostd_hrrsd_1x.py) |
-| SODA-A | [SODA-A.zip](https://pan.quark.cn/s/a22db407908d?pwd=qAP1) | `qAP1` | `data/SODA-A_coco/` | [SODA-A](configs/ostd/ostd_sodaa_1x.py) |
-| VisDrone | [VisDrone.zip](https://pan.quark.cn/s/1e770ae2572e?pwd=UvYu) | `UvYu` | `data/VisDrone_coco/` | [VisDrone](configs/ostd/ostd_visdrone_1x.py) |
-
-- **DIOR** uses `annotations/instances_trainval.json` with paths relative to `images/` for training, and `annotations/instances_test.json` with paths relative to `images/test/` for evaluation.
-- **HRRSD** uses the official training and test splits. **VisDrone** uses the official training split and the labeled `test-dev` split for evaluation.
-- **SODA-A** uses 800 × 800 patches with a stride of 650 pixels. The tiling protocol retains clipped boxes that cover at least 70% of the original box area. The configuration reads `images/train_patches/` and `images/test_patches/` with their corresponding COCO manifests.
-
-If you store the data elsewhere, update `ann_file` and `img_prefix` in the experiment configuration or its [base dataset configuration](configs/_base_/datasets).
+| Dataset  | Download                                                     | Access code | Dataset root          | Configuration                                |
+| -------- | ------------------------------------------------------------ | ----------- | --------------------- | -------------------------------------------- |
+| DIOR     | [DIOR.zip](https://pan.quark.cn/s/dd446ecb35b2?pwd=L7Zm)     | `L7Zm`      | `data/DIOR_coco/`     | [DIOR](configs/ostd/ostd_dior_1x.py)         |
+| HRRSD    | [HRRSD.zip](https://pan.quark.cn/s/5565eee34e88?pwd=Y6C9)    | `Y6C9`      | `data/HRRSD_coco/`    | [HRRSD](configs/ostd/ostd_hrrsd_1x.py)       |
+| SODA-A   | [SODA-A.zip](https://pan.quark.cn/s/a22db407908d?pwd=qAP1)   | `qAP1`      | `data/SODA-A_coco/`   | [SODA-A](configs/ostd/ostd_sodaa_1x.py)      |
+| VisDrone | [VisDrone.zip](https://pan.quark.cn/s/1e770ae2572e?pwd=UvYu) | `UvYu`      | `data/VisDrone_coco/` | [VisDrone](configs/ostd/ostd_visdrone_1x.py) |
 
 ## Training and evaluation
 
-Run these commands from the repository root in Bash. The DIOR training example uses three CUDA GPUs and seed 0. Logs and checkpoints are written to `work_dirs/rasa_net_dior/`.
+Run these commands from the repository root in Bash. Logs and checkpoints are written to `work_dirs/rasa_net_dior/`.
 
 ```bash
 bash tools/dist_train.sh configs/ostd/ostd_dior_1x.py 3 work_dirs/rasa_net_dior --seed 0
@@ -65,8 +59,6 @@ After training, evaluate the epoch 12 checkpoint on the DIOR test split.
 python tools/test.py configs/ostd/ostd_dior_1x.py work_dirs/rasa_net_dior/epoch_12.pth --eval bbox
 ```
 
-The public configurations use `sbla` as the option name for positive allocation. When comparing with the manuscript, check the allocation settings. The SODA-A configuration sets `base_sample_num=256` (the manuscript reports 512), and the VisDrone configuration sets `gamma=0.5` (the manuscript reports 0.1). The table above reports the manuscript experiments.
-
 ## Contact
 
-For questions about the paper, contact the corresponding author, Xiaoyu He (`hexiaoyv@zstu.edu.cn`).
+For questions about the paper, contact the author, Xuehan Li (`lxh2356338071@gmail.com`).
