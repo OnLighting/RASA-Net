@@ -17,7 +17,7 @@
 
 ## 运行命令
 
-以 DIOR 数据集训练 RASA-Net 为例：安装项目依赖并准备好 COCO 格式的数据后，在项目根目录的 Bash 终端中运行以下命令（需要 3 张 CUDA GPU）：
+以 DIOR 数据集训练 RASA-Net 为例：安装项目依赖并准备好 COCO 格式的数据后，在项目根目录的 Bash 终端中运行以下命令：
 
 ```bash
 bash tools/dist_train.sh configs/ostd/ostd_dior_1x.py 3 work_dirs/rasa_net_dior --seed 0
