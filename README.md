@@ -4,7 +4,7 @@
 
 **Authors:** Xiaoyu He, Xuehan Li, Zihao Chang, and Xiulin Geng
 
-RASA-Net (Receptive-Field Adaptation and Scale-Aware Assignment Network) is a two-stage detector for small objects in aerial and satellite imagery. It addresses two challenges common in optical remote sensing. Small objects lose spatial detail during downsampling, and their limited overlap with anchors can leave them with few positive training samples.
+RASA-Net detects small objects in aerial and satellite imagery through region-adaptive receptive fields and scale- and quality-aware positive allocation. It addresses two challenges common in optical remote sensing. Small objects lose spatial detail during downsampling, and their limited overlap with anchors can leave them with few positive training samples.
 
 - **Dynamic Receptive Field Convolution (DRFC)** routes each spatial region to convolutional experts with different receptive fields and combines their responses with directional context. It operates at the backbone stem, during downsampling, and at the highest-resolution pyramid level.
 - **Scale- and Quality-Aware Positive Allocation (SQPA)** adjusts the number of positive candidates per object using object size, anchor overlap, and predicted foreground confidence under an image-level budget that changes during training.
